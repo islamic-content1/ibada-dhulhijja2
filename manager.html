@@ -41,7 +41,7 @@ const ROWS=[
   {cat:'الذكر',ibada:'صلاة على الرسول',pts:5,customIdx:5,ptsDiv:100,note:'أدنى ٢٠٠/يوم'},
   {cat:'الذكر',ibada:'استغفار',pts:5,customIdx:6,ptsDiv:100,note:'أدنى ٢٠٠/يوم'},
   {cat:'الذكر',ibada:'تهليل',pts:5,customIdx:7,ptsDiv:100,note:'أدنى ٤٠٠/يوم'},
-  {cat:'الذكر',ibada:'سبحان الله وبحمده',pts:2,customIdx:8,ptsDiv:50,note:'أدنى ١٠٠/يوم'},
+  {cat:'الذكر',ibada:'سبحان الله وبحمده',pts:5,customIdx:8,ptsDiv:100,note:'أدنى ١٠٠/يوم'},
   {cat:'صدقة',ibada:'صدقة يومية',pts:1}
 ];
 const CUSTOM_DEFS=[
@@ -50,10 +50,10 @@ const CUSTOM_DEFS=[
   {ibada:'قضاء فروض',ptsPerUnit:3,unit:'فرض/يوم',defaultVal:1},
   {ibada:'ركعات ضحى',ptsPerUnit:1,unit:'ركعة/يوم',defaultVal:8},
   {ibada:'ركعات أوابين',ptsPerUnit:1,unit:'ركعة/يوم',defaultVal:6},
-  {ibada:'صلاة على الرسول',ptsPerUnit:5,unit:'مرة/يوم',defaultVal:200,ptsDiv:100,minVal:200},
-  {ibada:'استغفار',ptsPerUnit:5,unit:'مرة/يوم',defaultVal:200,ptsDiv:100,minVal:200},
-  {ibada:'تهليل',ptsPerUnit:5,unit:'مرة/يوم',defaultVal:400,ptsDiv:100,minVal:400},
-  {ibada:'سبحان الله وبحمده',ptsPerUnit:2,unit:'مرة/يوم',defaultVal:100,ptsDiv:50,minVal:100}
+  {ibada:'صلاة على الرسول',ptsPerUnit:5,unit:'مرة/يوم',defaultVal:200,ptsDiv:100},
+  {ibada:'استغفار',ptsPerUnit:5,unit:'مرة/يوم',defaultVal:200,ptsDiv:100},
+  {ibada:'تهليل',ptsPerUnit:5,unit:'مرة/يوم',defaultVal:400,ptsDiv:100},
+  {ibada:'سبحان الله وبحمده',ptsPerUnit:5,unit:'مرة/يوم',defaultVal:100,ptsDiv:100}
 ];
 const AMAL=[
   {name:'إفطار صائم',pts:5},{name:'جبر خاطر الأم والأب',pts:5},{name:'البسملة قبل كل عمل',pts:5},{name:'النوم على وضوء',pts:5},{name:'ترتيب النية لليوم',pts:5},{name:'يوم كامل بدون إنستغرام',pts:10},{name:'الاعتكاف من الفجر حتى الشروق',pts:10},{name:'إطعام حيوان',pts:5},{name:'استخدام السواك',pts:5},{name:'إهداء عبادة لميت',pts:5},{name:'رسالة شكر لمن له فضل عليكِ',pts:5},{name:'إدخال سرور على قلب طفل',pts:5},{name:'حفظ صفحتين قرآن',pts:10},{name:'حفظ ٥ أحاديث',pts:10},{name:'فرضين جماعة',pts:10}
@@ -77,7 +77,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 function readJSON(v,fb){try{return v?JSON.parse(v):fb}catch(e){return fb}}
 function getCustomValue(g,i){var def=CUSTOM_DEFS[i];var v=(g.customSettings&&g.customSettings[i]!=null)?g.customSettings[i]:undefined;if(def&&def.type==='choice')return v==null?0:Number(v);return Number(v==null?(def?def.defaultVal:0):v)||0;}
 function customLabel(g,i){var def=CUSTOM_DEFS[i];if(!def)return '';var v=getCustomValue(g,i);if(def.type==='choice'){var c=def.choices[v]||def.choices[0];return def.ibada+': '+c.label+' = '+c.pts+' نقطة';}return def.ibada+': '+v+' '+def.unit;}
-function rowPts(g,r){if(r.customIdx==null)return r.pts;var def=CUSTOM_DEFS[r.customIdx];var v=getCustomValue(g,r.customIdx);if(def.type==='choice')return (def.choices[v]||def.choices[0]).pts;if(def.minVal&&v<def.minVal)return 0;return Math.floor(v/(def.ptsDiv||1))*def.ptsPerUnit;}
+function rowPts(g,r){if(r.customIdx==null)return r.pts;var def=CUSTOM_DEFS[r.customIdx];var v=getCustomValue(g,r.customIdx);if(def.type==='choice')return (def.choices[v]||def.choices[0]).pts;return Math.floor(v/(def.ptsDiv||1))*def.ptsPerUnit;}
 function rowName(g,r){if(r.customIdx==null)return r.ibada;var def=CUSTOM_DEFS[r.customIdx];var v=getCustomValue(g,r.customIdx);if(def.type==='choice')return r.ibada+' — '+(def.choices[v]||def.choices[0]).label;if(r.dynamicName)return v+' '+r.ibada;return r.ibada+' — '+v+' '+def.unit;}
 function rowEarned(g,ri){var r=ROWS[ri],pts=rowPts(g,r),total=0;for(var d=1;d<=DAYS;d++)if(((g.state||{})[sk(ri,d)]||0)===1)total+=pts;return total;}
 async function loadData(){
@@ -156,8 +156,13 @@ function detailsTable(g){
   return html+'</tbody></table>';
 }
 function amalHtml(g){
-  const amal=g.amal||{};let count=0;Object.keys(amal).forEach(k=>{if(amal[k])count++;});let html='<div class="custom-box"><div class="custom-title">تم: '+count+'/'+AMAL.length+'</div><div class="amal-list">';
-  AMAL.forEach((a,i)=>{html+='<span class="'+(amal[i]?'amal-ok':'amal-no')+'">'+(amal[i]?'✓ ':'')+esc(a.name)+' — '+a.pts+'</span>';});
+  const amal=g.amal||{};let count=0;Object.keys(amal).forEach(k=>{if(amal[k])count++;});
+  const sorted=[...AMAL.map((a,i)=>({...a,i}))].sort((a,b)=>b.pts-a.pts);
+  let html='<div class="custom-box"><div class="custom-title">تم: '+count+'/'+AMAL.length+'</div><div class="amal-list">';
+  sorted.forEach(({i,pts,name})=>{
+    const done=!!amal[i];const is10=pts>=10;
+    html+='<span class="'+(done?'amal-ok':'amal-no')+'" style="'+(is10?'background:'+(done?'#fff8e1':'#fffdf0')+';border-color:#f0c040;':'')+'">'+(done?'✓ ':''+(is10?'🌟 ':''))+esc(name)+' — '+pts+'</span>';
+  });
   return html+'</div></div>';
 }
 function duaaHtml(g){
