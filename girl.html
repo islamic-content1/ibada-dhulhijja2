@@ -174,7 +174,7 @@ const ROWS=[
   {cat:'الذكر',ibada:'صلاة على الرسول',pts:5,customIdx:5,ptsDiv:100,note:'أدنى ٢٠٠ باليوم — ليل ونهار'},
   {cat:'الذكر',ibada:'استغفار',pts:5,customIdx:6,ptsDiv:100,note:'أدنى ٢٠٠ باليوم'},
   {cat:'الذكر',ibada:'تهليل',pts:5,customIdx:7,ptsDiv:100,note:'أدنى ٤٠٠ باليوم'},
-  {cat:'الذكر',ibada:'سبحان الله وبحمده',pts:2,customIdx:8,ptsDiv:50,note:'أدنى ١٠٠ باليوم'},
+  {cat:'الذكر',ibada:'سبحان الله وبحمده',pts:5,customIdx:8,ptsDiv:100,note:'أدنى ١٠٠ باليوم'},
   {cat:'صدقة',ibada:'صدقة يومية',pts:1},
 ];
 const CUSTOM_DEFS=[
@@ -183,10 +183,10 @@ const CUSTOM_DEFS=[
   {ibada:'قضاء فروض',ptsPerUnit:3,unit:'فرض/يوم',max:20,defaultVal:1},
   {ibada:'ركعات ضحى',ptsPerUnit:1,unit:'ركعة/يوم',max:20,defaultVal:8,dynamicName:true,baseName:'ركعات ضحى'},
   {ibada:'ركعات أوابين',ptsPerUnit:1,unit:'ركعة/يوم',max:12,defaultVal:6,dynamicName:true,baseName:'ركعات أوابين'},
-  {ibada:'صلاة على الرسول',ptsPerUnit:5,unit:'/يوم',max:2000,defaultVal:200,ptsDiv:100,minVal:200,note:'أدنى ٢٠٠ باليوم'},
-  {ibada:'استغفار',ptsPerUnit:5,unit:'/يوم',max:2000,defaultVal:200,ptsDiv:100,minVal:200,note:'أدنى ٢٠٠ باليوم'},
-  {ibada:'تهليل',ptsPerUnit:5,unit:'/يوم',max:4000,defaultVal:400,ptsDiv:100,minVal:400,note:'أدنى ٤٠٠ باليوم'},
-  {ibada:'سبحان الله وبحمده',ptsPerUnit:2,unit:'/يوم',max:1000,defaultVal:100,ptsDiv:50,minVal:100,note:'أدنى ١٠٠ باليوم'},
+  {ibada:'صلاة على الرسول',ptsPerUnit:5,unit:'/يوم',max:2000,defaultVal:200,ptsDiv:100,note:'أدنى ٢٠٠ باليوم'},
+  {ibada:'استغفار',ptsPerUnit:5,unit:'/يوم',max:2000,defaultVal:200,ptsDiv:100,note:'أدنى ٢٠٠ باليوم'},
+  {ibada:'تهليل',ptsPerUnit:5,unit:'/يوم',max:4000,defaultVal:400,ptsDiv:100,note:'أدنى ٤٠٠ باليوم'},
+  {ibada:'سبحان الله وبحمده',ptsPerUnit:5,unit:'/يوم',max:1000,defaultVal:100,ptsDiv:100,note:'أدنى ١٠٠ باليوم'},
 ];
 const AMAL=[
   {name:'إفطار صائم',pts:5,hadith:'قال رسول الله ﷺ: «مَن فَطَّرَ صائمًا كان له مثلُ أجرِه، غيرَ أنه لا ينقص من أجرِ الصائمِ شيء»'},
@@ -275,14 +275,14 @@ function buildCustomSettings(){
       row.innerHTML=`<span class="custom-label">${def.ibada}</span><div style="display:flex;gap:4px">${btnsHtml}</div><span class="custom-pts" id="cp_${i}">= ${pts} نقطة</span>`;
     }else{
       const val=saved?saved[i]:def.defaultVal;
-      const pts=(def.minVal&&val<def.minVal)?0:Math.floor(val/(def.ptsDiv||1))*def.ptsPerUnit;
+      const pts=Math.floor(val/(def.ptsDiv||1))*def.ptsPerUnit;
       const noteHtml=def.note?'<div style="font-size:9px;color:#856404">'+def.note+'</div>':'';
       row.innerHTML=`<span class="custom-label">${def.ibada}${noteHtml}</span><input type="number" class="custom-inp" id="ci_${i}" value="${val}" min="0" max="${def.max||999}" placeholder="${def.defaultVal||0}"><span class="custom-unit">${def.unit||''}</span><span class="custom-pts" id="cp_${i}">= ${pts} نقطة</span>`;
       box.appendChild(row);
       const inp=document.getElementById('ci_'+i);
       inp.oninput=function(){
         const n=parseInt(this.value)||0;
-        const def2=CUSTOM_DEFS[i];const p=(def2.minVal&&n<def2.minVal)?0:Math.floor(n/(def2.ptsDiv||1))*def2.ptsPerUnit;
+        const def2=CUSTOM_DEFS[i];const p=Math.floor(n/(def2.ptsDiv||1))*def2.ptsPerUnit;
         document.getElementById('cp_'+i).textContent='= '+p+' نقطة';
         const arr=CUSTOM_DEFS.map((d,j)=>{if(d.type==='choice'){return saved?saved[j]:0;}const el=document.getElementById('ci_'+j);return el?parseInt(el.value)||0:(saved?saved[j]:0);});
         saveCustomSettings(arr);
@@ -304,7 +304,7 @@ function setChoice(ci,choiceIdx,pts){
 }
 function initCustomPts(){
   const saved=getCustomSettings();if(!saved)return;
-  ROWS.forEach((r,ri)=>{if(r.customIdx!==undefined){const def=CUSTOM_DEFS[r.customIdx];const val=saved[r.customIdx]||0;if(def.type==='choice'){r.pts=def.choices[val]?def.choices[val].pts:def.choices[0].pts;}else{r.pts=(def.minVal&&val<def.minVal)?0:Math.floor(val/(def.ptsDiv||1))*def.ptsPerUnit;}}});
+  ROWS.forEach((r,ri)=>{if(r.customIdx!==undefined){const def=CUSTOM_DEFS[r.customIdx];const val=saved[r.customIdx]||0;if(def.type==='choice'){r.pts=def.choices[val]?def.choices[val].pts:def.choices[0].pts;}else{r.pts=Math.floor(val/(def.ptsDiv||1))*def.ptsPerUnit;}}});
 }
 function getDayTotals(){return Array.from({length:DAYS},(_,i)=>{let t=0;ROWS.forEach((r,ri)=>{if((state[sk(ri,i+1)]||0)===1)t+=r.pts});return t;});}
 function recalc(){
@@ -415,10 +415,15 @@ function getAmalDone(){try{return JSON.parse(_ls.getItem(AK)||'{}')}catch(e){ret
 function toggleAmal(){const body=document.getElementById('amalBody');const arr=document.getElementById('amalArr');const open=body.style.display==='block';body.style.display=open?'none':'block';arr.textContent=open?'▼':'▲';if(!open)buildAmal();}
 function buildAmal(){
   const body=document.getElementById('amalBody');const done=getAmalDone();body.innerHTML='';
-  AMAL.forEach((a,i)=>{
-    const isDone=!!done[i];const div=document.createElement('div');div.className='amal-item'+(isDone?' done':'');
-    div.innerHTML=`<div class="amal-check">${isDone?'✓':''}</div><div class="amal-info"><div class="amal-name">${a.name}</div>${a.hadith?`<div class="amal-hadith">${a.hadith}</div>`:''}</div><div class="amal-pts">${a.pts} نقاط</div>`;
-    div.onclick=()=>{const d=getAmalDone();if(d[i]){delete d[i];_ls.setItem(AK,JSON.stringify(d));buildAmal();recalc();showToast('تم إلغاء: '+a.name);}else{d[i]=true;_ls.setItem(AK,JSON.stringify(d));buildAmal();recalc();showToast('✓ '+a.name+' — '+a.pts+' نقاط');}};
+  // ترتيب: الـ 10 نقاط أول ثم الـ 5
+  const sorted=[...AMAL.map((a,i)=>({...a,i}))].sort((a,b)=>b.pts-a.pts);
+  sorted.forEach(({i,pts,name,hadith})=>{
+    const isDone=!!done[i];const is10=pts>=10;
+    const div=document.createElement('div');div.className='amal-item'+(isDone?' done':'');
+    if(is10&&!isDone) div.style.cssText='background:#fffdf0;border-color:#f0c040';
+    if(is10&&isDone) div.style.cssText='background:#fff8e1;border-color:#f0c040';
+    div.innerHTML=`<div class="amal-check">${isDone?'✓':''}</div><div class="amal-info"><div class="amal-name">${is10?'🌟 ':''}${name}</div>${hadith?`<div class="amal-hadith">${hadith}</div>`:''}</div><div class="amal-pts" style="${is10?'color:#b8860b':''}">${pts} نقاط</div>`;
+    div.onclick=()=>{const d=getAmalDone();if(d[i]){delete d[i];_ls.setItem(AK,JSON.stringify(d));buildAmal();recalc();showToast('تم إلغاء: '+name);}else{d[i]=true;_ls.setItem(AK,JSON.stringify(d));buildAmal();recalc();showToast('✓ '+name+' — '+pts+' نقاط');}};
     body.appendChild(div);
   });
 }
